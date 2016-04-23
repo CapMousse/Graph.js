@@ -2,7 +2,7 @@
 
 ![Graph](http://img.shwaark.com/uploads/big/14613584467762.png)
 
-Minimalistic line charts using canvas.
+Simple, clean and minimalistic line charts using canvas.
 
 ## Installation
 Copy `src/graph.min.js` in your project and load it with a script tag :
@@ -45,6 +45,8 @@ You can easily change some property of the chart with the config object :
     // Show the line at zero
     showZeroLine:   true,
     zeroLineColor:  "#EEE",
+
+    // Color and whidth of the line chart
     lineColor:      "#8888EE",
     lineWidth:      3,
 
