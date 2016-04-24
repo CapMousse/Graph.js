@@ -11,7 +11,7 @@
             background:     "#FFFFFF",
             showZeroLine:   false,
             zeroLineColor:  "#EEE",
-            lineColor:      "#8888EE",
+            lineColor:      "#C5C5C5",
             lineWidth:      3,
             showBounds:     false,
             bounds:         "#8888EE",
@@ -33,6 +33,7 @@
         }
 
         this.init();
+        this.draw();
     }
 
     /**
@@ -40,11 +41,22 @@
      */
     Graph.prototype.init = function () {
         if (this.options.showBounds) {
-            this.options.paddingLeft = this.options.paddingLeft < 20 ? 20 : this.options.paddingLeft;
-            this.options.paddingTop = this.options.paddingTop < 20 ? 20 : this.options.paddingTop;
-            this.options.paddingBottom = this.options.paddingBottom < 20 ? 20 : this.options.paddingBottom;
+            this.options.paddingLeft = this.options.paddingLeft || 20;
+            this.options.paddingTop = this.options.paddingTop || 20;
+            this.options.paddingBottom = this.options.paddingBottom || 20;
         }
 
+        if (this.options.showCircle) {
+            this.options.paddingRight = this.options.paddingRight || this.options.circleSize;
+            this.options.paddingTop = this.options.paddingTop || this.options.circleSize;
+            this.options.paddingBottom = this.options.paddingBottom || this.options.circleSize;
+        }
+    }
+
+    /**
+     * Draw the graph
+     */
+    Graph.prototype.draw = function() {
         this.drawBackground();
         this.drawMiddle();
         this.computeScale();
@@ -52,7 +64,7 @@
         this.drawData();
         this.drawCircle();
         this.drawBounds();
-    }
+    };
 
     /**
      * Draw canvas brackground
