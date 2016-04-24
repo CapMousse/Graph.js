@@ -10,6 +10,7 @@
             circleSize:     4,
             background:     "#FFFFFF",
             showZeroLine:   false,
+            centerZero:     false,
             zeroLineColor:  "#EEE",
             lineColor:      "#C5C5C5",
             lineWidth:      3,
@@ -41,9 +42,9 @@
      */
     Graph.prototype.init = function () {
         if (this.options.showBounds) {
-            this.options.paddingLeft = this.options.paddingLeft || 20;
-            this.options.paddingTop = this.options.paddingTop || 20;
-            this.options.paddingBottom = this.options.paddingBottom || 20;
+            this.options.paddingLeft = this.options.paddingLeft || this.options.boundsHeight / 1.4;
+            this.options.paddingTop = this.options.paddingTop || this.options.boundsHeight * 1.4;
+            this.options.paddingBottom = this.options.paddingBottom || this.options.boundsHeight * 1.4;
         }
 
         if (this.options.showCircle) {
@@ -51,6 +52,10 @@
             this.options.paddingTop = this.options.paddingTop || this.options.circleSize;
             this.options.paddingBottom = this.options.paddingBottom || this.options.circleSize;
         }
+
+        
+        this.options.paddingTop = this.options.paddingTop || this.options.lineWidth;
+        this.options.paddingBottom = this.options.paddingBottom || this.options.lineWidth;
     }
 
     /**
@@ -58,8 +63,8 @@
      */
     Graph.prototype.draw = function() {
         this.drawBackground();
-        this.drawMiddle();
         this.computeScale();
+        this.drawMiddle();
         this.drawScale();
         this.drawData();
         this.drawCircle();
@@ -75,36 +80,40 @@
     };
 
     /**
+     * Compute scale for given canvas size
+     */
+    Graph.prototype.computeScale = function() {
+        var height      = this.canvas.height,
+            width       = this.canvas.width;
+
+        this.maxPositive = Math.abs(Math.max.apply(null, this.data));
+        this.maxNegative = Math.abs(Math.min.apply(null, this.data));
+        this.max = Math.max(this.maxPositive, this.maxNegative);
+
+        height  -= this.options.paddingTop + this.options.paddingBottom;
+        width   -= this.options.paddingLeft + this.options.paddingRight;
+
+        this.horizontalScale = width / (this.data.length-1);
+
+        if (this.options.centerZero) {
+            this.middle = Math.round(height / 2);
+            this.verticalScale = this.middle / this.max;
+        } else {
+            this.verticalScale = height / (this.maxPositive + this.maxNegative);
+            this.middle = Math.round(this.maxPositive * this.verticalScale);
+        }
+    };
+
+    /**
      * Draw middle line of a graph
      */
     Graph.prototype.drawMiddle = function() {
         if (!this.options.showZeroLine) return;
 
-        var middle = Math.round(this.canvas.height / 2);
-
-        this.context.moveTo(this.options.paddingLeft, middle);
-        this.context.lineTo(this.canvas.width - this.options.paddingRight, middle);
+        this.context.moveTo(this.options.paddingLeft, this.middle +  this.options.paddingTop);
+        this.context.lineTo(this.canvas.width - this.options.paddingRight, this.middle + this.options.paddingTop);
         this.context.strokeStyle = this.options.zeroLineColor;
         this.context.stroke();
-    };
-
-    /**
-     * Compute scale for given canvas size
-     */
-    Graph.prototype.computeScale = function() {
-        var maxPositive = Math.abs(Math.max.apply(null, this.data)),
-            maxNegative = Math.abs(Math.min.apply(null, this.data)),
-            height      = this.canvas.height,
-            width       = this.canvas.width;
-
-
-        this.max = Math.max(maxPositive, maxNegative);
-
-        height -= this.options.paddingTop + this.options.paddingBottom;
-        width -= this.options.paddingLeft + this.options.paddingRight;
-
-        this.verticalScale = height / 2 / this.max;
-        this.horizontalScale = width / (this.data.length-1);
     };
 
     /**
@@ -146,7 +155,7 @@
     Graph.prototype.getPointCoordinates = function(index) {
         return [
             this.options.paddingLeft + (index * this.horizontalScale),
-            (this.canvas.height / 2) - (this.verticalScale * this.data[index])
+            (this.middle + this.options.paddingTop) - (this.verticalScale * this.data[index])
         ]
     };
 
@@ -170,13 +179,17 @@
      */
     Graph.prototype.drawBounds = function() {
         if (!this.options.showBounds) return;
+        
+
+        var topBound    = this.options.centerZero ? this.max : this.maxPositive,
+            bottomBound = this.options.centerZero ? this.max : this.maxNegative;
 
         this.context.font = this.options.boundsHeight + "px " + this.options.boundsFont;
         this.context.fillStyle = this.options.bounds;
         this.context.textBaseline = 'middle'; 
         this.context.textAlign = 'center'; 
-        this.context.fillText(this.max, this.options.paddingLeft, this.options.paddingTop - this.options.boundsHeight);
-        this.context.fillText("-" + this.max, this.options.paddingLeft, this.canvas.height - this.options.paddingBottom + this.options.boundsHeight);
+        this.context.fillText(topBound, this.options.paddingLeft, this.options.paddingTop - this.options.boundsHeight);
+        this.context.fillText((bottomBound ? "-" : "") + bottomBound, this.options.paddingLeft, this.canvas.height - this.options.paddingBottom + this.options.boundsHeight);
     };
 
     this.Graph = Graph;

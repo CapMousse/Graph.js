@@ -43,6 +43,7 @@ You can easily change some property of the chart with the config object :
     circleSize:     4,
 
     // Show the line at zero
+    centerZero:     false,
     showZeroLine:   true,
     zeroLineColor:  "#EEE",
 
