@@ -59,5 +59,47 @@ You can easily change some property of the chart with the config object :
 }
 ```
 
+## Customisation
+
+Graph.js can be easily extended to do anything you want. You just need to use standard object inheritance to make it work.
+
+Here is an example to make a dot cloud graph:
+
+```javascript
+function DotCloudGraph () {
+    Graph.apply(this, arguments);
+}
+
+DotCloudGraph.prototype = Object.create(Graph.prototype);
+DotCloudGraph.prototype.constructor = DotCloudGraph;
+
+/**
+ * Draw a cloud of dots graph
+ */
+DotCloudGraph.prototype.drawData = function () {
+    if (this.options.showLine) {
+        // Display line graph if showLine is true
+        Graph.prototype.drawData.call(this);
+    }
+
+    // Draw a circle at each data
+    var i = this.data.length - 1, coordinates;
+
+    for (; i >= 0; i--) {
+        coordinates = this.getPointCoordinates(i);
+        
+        this.context.fillStyle = "#D05656";
+        this.context.beginPath();
+        this.context.arc(coordinates[0], coordinates[1], 3, 0, 2*Math.PI);
+        this.context.closePath();
+        this.context.fill();
+    }
+}
+
+new DotCloudGraph(cavas, data, options);
+```
+
+![Customisation](http://img.shwaark.com/uploads/big/14615687299646.png)
+
 ## License
 Graph.js is available under the [Mit License](http://opensource.org/licenses/MIT)
