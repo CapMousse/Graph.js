@@ -10,7 +10,7 @@ Copy `src/graph.min.js` in your project and load it with a script tag :
 ```html
 <script src="graph.min.js"></script>
 <script>
-    var chart = new Graph(canvas, datas, options)
+    var chart = new Graph(data, canvas,  options)
 </script>
 ```
 
@@ -18,7 +18,7 @@ Copy `src/graph.min.js` in your project and load it with a script tag :
 To create a chart, you need to instantiate `Graph` with a canvas and a set of data.
 
 ```javascript
-new Graph(HTMLCanvasElement, Array datas[, Object options]);
+new Graph(Array data, HTMLCanvasElement[, Object options]);
 ```
 
 Bam, you're done !
@@ -96,7 +96,7 @@ DotCloudGraph.prototype.drawData = function () {
     }
 }
 
-new DotCloudGraph(cavas, data, options);
+new DotCloudGraph(data, canvas, options);
 ```
 
 ![Customisation](http://img.shwaark.com/uploads/big/14615687299646.png)
