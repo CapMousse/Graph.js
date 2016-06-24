@@ -63,7 +63,9 @@ You can easily change some property of the chart with the config object :
 
 Graph.js can be easily extended to do anything you want. You just need to use standard object inheritance to make it work.
 
-Here is an example to make a dot cloud graph:
+Here is some examples of customisation:
+
+### Cloud of dots
 
 ```javascript
 function DotCloudGraph () {
@@ -97,6 +99,42 @@ DotCloudGraph.prototype.drawData = function () {
 }
 
 new DotCloudGraph(data, canvas, options);
+```
+
+### Filled graph
+
+```javascript
+function FilleGraph () {
+    Graph.apply(this, arguments);
+}
+
+FilleGraph.prototype = Object.create(Graph.prototype);
+FilleGraph.prototype.constructor = FilleGraph;
+
+/**
+ * Draw a filled graph
+ */
+CustomGraph.prototype.drawData = function () {
+    if (this.options.showLine) {
+        Graph.prototype.drawData.call(this);
+    }
+
+    var i = this.data.length - 1, coordinates, coordinates2;
+
+    for (; i >= 1; i--) {
+        coordinates = this.getPointCoordinates(i);
+        coordinates2 = this.getPointCoordinates(i-1);
+        
+        this.context.fillStyle = "#d3d3d3";
+        this.context.beginPath();
+        this.context.lineTo(coordinates[0], coordinates[1]);
+        this.context.lineTo(coordinates[0], this.middle +  this.options.paddingTop);
+        this.context.lineTo(coordinates2[0]-1, this.middle +  this.options.paddingTop);
+        this.context.lineTo(coordinates2[0]-1, coordinates2[1]);
+        this.context.closePath();
+        this.context.fill();
+    }
+}
 ```
 
 ![Customisation](http://img.shwaark.com/uploads/big/14615687299646.png)
