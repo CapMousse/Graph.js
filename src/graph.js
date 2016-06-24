@@ -41,34 +41,38 @@
      * Init graph
      */
     Graph.prototype.init = function () {
-        if (this.options.showBounds) {
-            this.options.paddingLeft = this.options.paddingLeft || this.options.boundsHeight / 1.4;
-            this.options.paddingTop = this.options.paddingTop || this.options.boundsHeight * 1.4;
-            this.options.paddingBottom = this.options.paddingBottom || this.options.boundsHeight * 1.4;
+        var self = this;
+
+        if (self.options.showBounds) {
+            self.options.paddingLeft = self.options.paddingLeft || self.options.boundsHeight / 1.4;
+            self.options.paddingTop = self.options.paddingTop || self.options.boundsHeight * 1.4;
+            self.options.paddingBottom = self.options.paddingBottom || self.options.boundsHeight * 1.4;
         }
 
-        if (this.options.showCircle) {
-            this.options.paddingRight = this.options.paddingRight || this.options.circleSize;
-            this.options.paddingTop = this.options.paddingTop || this.options.circleSize;
-            this.options.paddingBottom = this.options.paddingBottom || this.options.circleSize;
+        if (self.options.showCircle) {
+            self.options.paddingRight = self.options.paddingRight || self.options.circleSize;
+            self.options.paddingTop = self.options.paddingTop || self.options.circleSize;
+            self.options.paddingBottom = self.options.paddingBottom || self.options.circleSize;
         }
 
         
-        this.options.paddingTop = this.options.paddingTop || this.options.lineWidth;
-        this.options.paddingBottom = this.options.paddingBottom || this.options.lineWidth;
+        self.options.paddingTop = self.options.paddingTop || self.options.lineWidth;
+        self.options.paddingBottom = self.options.paddingBottom || self.options.lineWidth;
     }
 
     /**
      * Draw the graph
      */
     Graph.prototype.draw = function() {
-        this.drawBackground();
-        this.computeScale();
-        this.drawMiddle();
-        this.drawScale();
-        this.drawData();
-        this.drawCircle();
-        this.drawBounds();
+        var self = this;
+
+        self.drawBackground();
+        self.computeScale();
+        self.drawMiddle();
+        self.drawScale();
+        self.drawData();
+        self.drawCircle();
+        self.drawBounds();
     };
 
     /**
@@ -83,24 +87,34 @@
      * Compute scale for given canvas size
      */
     Graph.prototype.computeScale = function() {
-        var height      = this.canvas.height,
-            width       = this.canvas.width;
+        var self        = this,
+            height      = self.canvas.height,
+            width       = self.canvas.width;
 
-        this.maxPositive = Math.abs(Math.max.apply(null, this.data));
-        this.maxNegative = Math.abs(Math.min.apply(null, this.data));
-        this.max = Math.max(this.maxPositive, this.maxNegative);
+        self.maxPositive = Math.max.apply(null, self.data);
+        self.maxNegative = Math.min.apply(null, self.data);
 
-        height  -= this.options.paddingTop + this.options.paddingBottom;
-        width   -= this.options.paddingLeft + this.options.paddingRight;
+        if (self.maxPositive == self.maxNegative) {
+            if (self.maxPositive == 0) self.maxPositive = 1;
+            if (self.maxPositive > 0) self.maxNegative = 0;
+            if (self.maxPositive < 0) self.maxPositive = 0;
+        }
 
-        this.horizontalScale = width / (this.data.length-1);
+        self.maxPositive = Math.abs(self.maxPositive);
+        self.maxNegative = Math.abs(self.maxNegative);
+        self.max = Math.max(self.maxPositive, self.maxNegative);
 
-        if (this.options.centerZero) {
-            this.middle = Math.round(height / 2);
-            this.verticalScale = this.middle / this.max;
+        height  -= self.options.paddingTop + self.options.paddingBottom;
+        width   -= self.options.paddingLeft + self.options.paddingRight;
+
+        self.horizontalScale = width / (self.data.length-1);
+
+        if (self.options.centerZero) {
+            self.middle = Math.round(height / 2);
+            self.verticalScale = self.middle / self.max;
         } else {
-            this.verticalScale = height / (this.maxPositive + this.maxNegative);
-            this.middle = Math.round(this.maxPositive * this.verticalScale);
+            self.verticalScale = height / (self.maxPositive + self.maxNegative);
+            self.middle = Math.round(self.maxPositive * self.verticalScale);
         }
     };
 
@@ -108,43 +122,48 @@
      * Draw middle line of a graph
      */
     Graph.prototype.drawMiddle = function() {
-        if (!this.options.showZeroLine) return;
+        var self = this;
 
-        this.context.moveTo(this.options.paddingLeft, this.middle +  this.options.paddingTop);
-        this.context.lineTo(this.canvas.width - this.options.paddingRight, this.middle + this.options.paddingTop);
-        this.context.strokeStyle = this.options.zeroLineColor;
-        this.context.stroke();
+        if (!self.options.showZeroLine) return;
+
+        self.context.moveTo(self.options.paddingLeft, self.middle +  self.options.paddingTop);
+        self.context.lineTo(self.canvas.width - self.options.paddingRight, self.middle + self.options.paddingTop);
+        self.context.strokeStyle = self.options.zeroLineColor;
+        self.context.stroke();
     };
 
     /**
      * Draw scale line
      */
     Graph.prototype.drawScale = function () {
-        if (!this.options.showBounds) return;
+        var self = this;
 
-        this.context.moveTo(this.options.paddingLeft, this.options.paddingTop);
-        this.context.lineTo(this.options.paddingLeft, this.canvas.height - this.options.paddingBottom);
-        this.context.strokeStyle = this.options.zeroLineColor;
-        this.context.stroke();
+        if (!self.options.showBounds) return;
+
+        self.context.moveTo(self.options.paddingLeft, self.options.paddingTop);
+        self.context.lineTo(self.options.paddingLeft, self.canvas.height - self.options.paddingBottom);
+        self.context.strokeStyle = self.options.zeroLineColor;
+        self.context.stroke();
     };
 
     /**
      * Draw data line     
      */
     Graph.prototype.drawData = function() {
-        var i = this.data.length - 2;
+        var self = this,
+            i    = self.data.length - 2;
 
-        this.context.strokeStyle = this.options.lineColor;
-        this.context.lineWidth = this.options.lineWidth;
+        self.context.strokeStyle = self.options.lineColor;
+        self.context.lineWidth = self.options.lineWidth;
 
-        this.context.beginPath();
-        this.context.moveTo.apply(this.context, this.getPointCoordinates(this.data.length - 1));
+        self.context.beginPath();
+        self.context.moveTo.apply(self.context, self.getPointCoordinates(self.data.length - 1));
 
         for (; i >= 0; i--) {
-            this.context.lineTo.apply(this.context, this.getPointCoordinates(i));
+            self.context.lineTo.apply(self.context, self.getPointCoordinates(i));
         }
 
-        this.context.stroke();
+        self.context.stroke();
     };
 
     /**
@@ -163,33 +182,37 @@
      * Draw circle to the end of the graph
      */
     Graph.prototype.drawCircle = function() {
-        if (!this.options.showCircle) return;
+        var self = this;
 
-        var lastPoint = this.getPointCoordinates(this.data.length - 1);
+        if (!self.options.showCircle) return;
 
-        this.context.fillStyle = this.options.circle;
-        this.context.beginPath();
-        this.context.arc(lastPoint[0], lastPoint[1], this.options.circleSize, 0, 2*Math.PI);
-        this.context.closePath();
-        this.context.fill();
+        var lastPoint = self.getPointCoordinates(self.data.length - 1);
+
+        self.context.fillStyle = self.options.circle;
+        self.context.beginPath();
+        self.context.arc(lastPoint[0], lastPoint[1], self.options.circleSize, 0, 2*Math.PI);
+        self.context.closePath();
+        self.context.fill();
     };
 
     /**
      * Draw scale bounds text
      */
     Graph.prototype.drawBounds = function() {
-        if (!this.options.showBounds) return;
+        var self = this;
+
+        if (!self.options.showBounds) return;
         
 
-        var topBound    = this.options.centerZero ? this.max : this.maxPositive,
-            bottomBound = this.options.centerZero ? this.max : this.maxNegative;
+        var topBound    = self.options.centerZero ? self.max : self.maxPositive,
+            bottomBound = self.options.centerZero ? self.max : self.maxNegative;
 
-        this.context.font = this.options.boundsHeight + "px " + this.options.boundsFont;
-        this.context.fillStyle = this.options.bounds;
-        this.context.textBaseline = 'middle'; 
-        this.context.textAlign = 'center'; 
-        this.context.fillText(topBound, this.options.paddingLeft, this.options.paddingTop - this.options.boundsHeight);
-        this.context.fillText((bottomBound ? "-" : "") + bottomBound, this.options.paddingLeft, this.canvas.height - this.options.paddingBottom + this.options.boundsHeight);
+        self.context.font = self.options.boundsHeight + "px " + self.options.boundsFont;
+        self.context.fillStyle = self.options.bounds;
+        self.context.textBaseline = 'middle'; 
+        self.context.textAlign = 'center'; 
+        self.context.fillText(topBound, self.options.paddingLeft, self.options.paddingTop - self.options.boundsHeight);
+        self.context.fillText((bottomBound ? "-" : "") + bottomBound, self.options.paddingLeft, self.canvas.height - self.options.paddingBottom + self.options.boundsHeight);
     };
 
     this.Graph = Graph;
