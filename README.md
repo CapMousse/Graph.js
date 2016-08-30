@@ -1,6 +1,6 @@
 # Graph.js
 
-![Graph](http://img.shwaark.com/uploads/big/14613584467762.png)
+![Graph](http://img.jeremy.sh/uploads/big/14613584467762.png)
 
 Simple, clean and minimalistic line charts using canvas.
 
@@ -137,7 +137,7 @@ CustomGraph.prototype.drawData = function () {
 }
 ```
 
-![Customisation](http://img.shwaark.com/uploads/big/14615687299646.png)
+![Customisation](http://img.jeremy.sh/uploads/big/14615687299646.png)
 
 ## License
 Graph.js is available under the [Mit License](http://opensource.org/licenses/MIT)
