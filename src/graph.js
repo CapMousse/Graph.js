@@ -17,13 +17,19 @@
             showBounds:     false,
             bounds:         "#8888EE",
             boundsHeight:   14,
-            boundsFont:     "Arial"
+            boundsFont:     "Arial",
+            showLegend:     false,
+            legend:         "#8888EE",
+            legendHeight:   14,
+            legendFont:     "Arial",
         };
 
-        if (!Array.isArray(data)) throw new Error('Data is not an array');
+        if (typeof data !== 'object' && !Array.isArray(data)) throw new Error('Data is not an array');
         if (!canvas || !canvas.nodeName || canvas.nodeName !== "CANVAS") throw new Error('Canvas not defined');
 
-        this.data = data;
+
+        this.data = !!data.data ? data.data : data;
+        this.legend = !!data.data ? data.legend : !1;
         this.canvas = canvas;
         this.context = canvas.getContext('2d');
 
@@ -42,6 +48,17 @@
      */
     Graph.prototype.init = function () {
         var self = this;
+
+        if (self.options.parentSize) {
+            self.canvas.height = self.canvas.parentElement.offsetHeight;
+            self.canvas.width = self.canvas.parentElement.offsetWidth;
+        }
+
+        if (self.options.showLegend) {
+            self.options.paddingLeft = self.options.paddingLeft || self.options.legendHeight * 2;
+            self.options.paddingRight = self.options.paddingRight || self.options.legendHeight * 2;
+            self.options.paddingBottom = self.options.paddingBottom || self.options.legendHeight * 2.5;
+        }
 
         if (self.options.showBounds) {
             self.options.paddingLeft = self.options.paddingLeft || self.options.boundsHeight / 1.4;
@@ -73,6 +90,7 @@
         self.drawData();
         self.drawCircle();
         self.drawBounds();
+        self.drawLegend();
     };
 
     /**
@@ -202,17 +220,39 @@
         var self = this;
 
         if (!self.options.showBounds) return;
-        
 
         var topBound    = self.options.centerZero ? self.max : self.maxPositive,
             bottomBound = self.options.centerZero ? self.max : self.maxNegative;
 
         self.context.font = self.options.boundsHeight + "px " + self.options.boundsFont;
         self.context.fillStyle = self.options.bounds;
-        self.context.textBaseline = 'middle'; 
+        self.context.textBaseline = 'middle';
+        self.context.textAlign = 'center';
+        console.log(self.showLegend);
+        self.context.fillText(topBound, self.options.paddingLeft - (self.options.showLegend ? self.options.paddingLeft/2 : 0) , self.options.paddingTop - ( self.options.showLegend ? 0 : self.options.boundsHeight));
+        self.context.fillText((bottomBound ? "-" : "") + bottomBound, self.options.paddingLeft - (self.options.showLegend ? self.options.paddingLeft/2 : 0), self.canvas.height - self.options.paddingBottom + (self.options.showLegend ? 0 : self.options.boundsHeight));
+    };
+
+    /**
+     * Draw graph legend
+     */
+    Graph.prototype.drawLegend = function() {
+        var self = this,
+            i    = self.data.length,
+            c;
+
+        if (!self.options.showLegend || !self.legend) return;
+
+        self.context.font = self.options.legendHeight + "px " + self.options.legendFont;
+        self.context.fillStyle = self.options.legend;
+        self.context.textBaseline = 'middle';
         self.context.textAlign = 'center'; 
-        self.context.fillText(topBound, self.options.paddingLeft, self.options.paddingTop - self.options.boundsHeight);
-        self.context.fillText((bottomBound ? "-" : "") + bottomBound, self.options.paddingLeft, self.canvas.height - self.options.paddingBottom + self.options.boundsHeight);
+
+        for (; i>=0; i--) {
+            c = self.getPointCoordinates(i);
+            self.context.fillText(self.legend[i], c[0], self.canvas.height - self.options.paddingBottom/2);
+        }
+
     };
 
     this.Graph = Graph;

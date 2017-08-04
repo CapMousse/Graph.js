@@ -21,6 +21,12 @@ To create a chart, you need to instantiate `Graph` with a canvas and a set of da
 new Graph(Array data, HTMLCanvasElement[, Object options]);
 ```
 
+You can also dislay a legend by using an object containing data and legend as the first argument.
+
+```javascript
+new Graph(Object { data: Array data, legend: Array legend }, HTMLCanvasElement[, Object options]);
+```
+
 Bam, you're done !
 
 ## Configuring a chart
@@ -55,7 +61,13 @@ You can easily change some property of the chart with the config object :
     showBounds:     true,
     bounds:         "#8888EE",
     boundsHeight:   14,
-    boundsFont:     "Arial"
+    boundsFont:     "Arial",
+
+    // Show the legend
+    showLegend:     false,
+    legend:         "#8888EE",
+    legendHeight:   14,
+    legendFont:     "Arial",
 }
 ```
 
