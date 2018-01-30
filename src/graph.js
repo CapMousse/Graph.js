@@ -131,7 +131,7 @@
             self.middle = Math.round(height / 2);
             self.verticalScale = self.middle / self.max;
         } else {
-            self.verticalScale = height / (self.maxPositive + self.maxNegative);
+            self.verticalScale = height / (self.maxPositive - self.maxNegative);
             self.middle = Math.round(self.maxPositive * self.verticalScale);
         }
     };
