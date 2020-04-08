@@ -40,7 +40,7 @@ class Graph {
         this.options.context = this.options.target.getContext('2d');
 
         this.init();
-        return this.draw();
+        this.draw();
     }
 
     /**
@@ -86,198 +86,157 @@ class Graph {
 
     /**
      * Draw the graph
-     * @return {Promise}
      */
-    draw() {
-        return this.drawBackground()
-            .then(this.computeScale.bind(this))
-            .then(this.drawMiddle.bind(this))
-            .then(this.drawScale.bind(this))
-            .then(this.drawData.bind(this))
-            .then(this.drawCircle.bind(this))
-            .then(this.drawBounds.bind(this))
-            .then(this.drawLegend.bind(this));
+    async draw() {
+        await this.drawBackground();
+        await this.computeScale();
+        await this.drawMiddle();
+        await this.drawScale();
+        await this.drawData();
+        await this.drawCircle();
+        await this.drawBounds();
+        await this.drawLegend();
     }
 
     /**
      * Draw canvas brackground
-     * @return {Promise}
      */
-    drawBackground() {
-        return new Promise((resolve) => {
-            this.options.context.fillStyle = this.options.background;
-            this.options.context.fillRect(0, 0, this.options.target.width, this.options.target.height);
-            
-            resolve();
-        });
+    async drawBackground() {
+        this.options.context.fillStyle = this.options.background;
+        this.options.context.fillRect(0, 0, this.options.target.width, this.options.target.height);
     }
 
     /**
      * Compute scale for given canvas size
-     * @return {Promise}
      */
-    computeScale() {
-        return new Promise((resolve) => {
-            let height = this.options.target.height;
-            let width = this.options.target.width;
+    async computeScale() {
+        this.maxValue = Math.abs(Math.max(...this.options.data));
+        this.minValue = Math.abs(Math.min(...this.options.data));
 
-            this.maxValue = Math.abs(Math.max(...this.options.data));
-            this.minValue = Math.abs(Math.min(...this.options.data));
-
-            if (this.minValue != this.maxValue && this.options.showZeroLine) {
-                if(this.maxValue > this.minValue) {
-                    this.minValue = 0;
-                } else {
-                    this.maxValue = 0;
-                }
-            }
-
-            this.max = Math.max(this.maxValue, this.minValue);
-            height -= this.options.paddingTop + this.options.paddingBottom;
-            width -= this.options.paddingLeft + this.options.paddingRight;
-            this.horizontalScale = width / (this.options.data.length - 1);
-            
-            if (this.options.centerZero || this.maxValue == this.minValue) {
-                this.middle = Math.round(height / 2);
-                this.verticalScale = this.middle / this.max;
+        if (this.minValue != this.maxValue && this.options.showZeroLine) {
+            if(this.maxValue > this.minValue) {
+                this.minValue = 0;
             } else {
-                this.verticalScale = height / (this.maxValue - this.minValue);
-                this.middle = Math.round(this.maxValue * this.verticalScale);
+                this.maxValue = 0;
             }
+        }
 
-            resolve();
-        });
+        this.max = Math.max(this.maxValue, this.minValue);
+        this.height = this.options.target.height - (this.options.paddingTop + this.options.paddingBottom);
+        this.width = this.options.target.width - (this.options.paddingLeft + this.options.paddingRight);
+        this.horizontalScale = this.width / (this.options.data.length - 1);
+        
+        if (this.options.centerZero || this.maxValue == this.minValue) {
+            this.middle = Math.round(this.height / 2);
+            this.verticalScale = this.middle / this.max;
+        } else {
+            this.verticalScale = this.height / (this.maxValue - this.minValue);
+            this.middle = Math.round(this.maxValue * this.verticalScale);
+        }
     }
 
     /**
      * Draw middle line of a graph
-     * @return {Promise}
      */
-    drawMiddle() {
-        return new Promise((resolve) => {
-            if (!this.options.showZeroLine) {
-                resolve();
-                return;
-            }
-    
-            this.options.context.moveTo(this.options.paddingLeft, this.middle + this.options.paddingTop);
-            this.options.context.lineTo(this.options.target.width - this.options.paddingRight, this.middle + this.options.paddingTop);
-            this.options.context.strokeStyle = this.options.zeroLineColor;
-            this.options.context.stroke();
+    async drawMiddle() {
+        if (!this.options.showZeroLine) {
+            return;
+        }
 
-            resolve();
-        });
+        this.options.context.moveTo(this.options.paddingLeft, this.middle + this.options.paddingTop);
+        this.options.context.lineTo(this.options.target.width - this.options.paddingRight, this.middle + this.options.paddingTop);
+        this.options.context.strokeStyle = this.options.zeroLineColor;
+        this.options.context.stroke();
     }
 
     /**
      * Draw scale line
      * @return {Promise}
      */
-    drawScale() {
-        return new Promise((resolve) => {
-            if (!this.options.showBounds) {
-                resolve();
-                return;
-            }
-    
-            this.options.context.moveTo(this.options.paddingLeft, this.options.paddingTop);
-            this.options.context.lineTo(this.options.paddingLeft, this.options.target.height - this.options.paddingBottom);
-            this.options.context.strokeStyle = this.options.zeroLineColor;
-            this.options.context.stroke();
+    async drawScale() {
+        if (!this.options.showBounds) {
+            return;
+        }
 
-            resolve();
-        });
+        this.options.context.moveTo(this.options.paddingLeft, this.options.paddingTop);
+        this.options.context.lineTo(this.options.paddingLeft, this.options.target.height - this.options.paddingBottom);
+        this.options.context.strokeStyle = this.options.zeroLineColor;
+        this.options.context.stroke();
     }
 
     /**
      * Draw data line
      * @return {Promise}
      */
-    drawData() {
-        return new Promise((resolve) => {
-            const dataLength = this.options.data.length - 1;
+    async drawData() {
+        const dataLength = this.options.data.length - 1;
 
-            this.options.context.strokeStyle = this.options.lineColor;
-            this.options.context.lineWidth = this.options.lineWidth;
-            this.options.context.moveTo.apply(this.options.context, this.getPointCoordinates(0));
-            this.options.context.beginPath();
-    
-            for (let i = 0; i <= dataLength; i++) {
-                    this.options.context.lineTo.apply(this.options.context, this.getPointCoordinates(i));
-            }
-            
-            this.options.context.stroke();
-            resolve();
-        });
+        this.options.context.strokeStyle = this.options.lineColor;
+        this.options.context.lineWidth = this.options.lineWidth;
+        this.options.context.moveTo.apply(this.options.context, this.getPointCoordinates(0));
+        this.options.context.beginPath();
+
+        for (let i = 0; i <= dataLength; i++) {
+                this.options.context.lineTo.apply(this.options.context, this.getPointCoordinates(i));
+        }
+        
+        this.options.context.stroke();
     }
 
     /**
      * Draw circle to the end of the graph
      * @return {Promise}
      */
-    drawCircle() {
-        return new Promise((resolve) => {
-            if (!this.options.showCircle) {
-                resolve();
-                return;
-            }
-    
-            const lastPoint = this.getPointCoordinates(this.options.data.length - 1);
-            this.options.context.fillStyle = this.options.circle;
-            this.options.context.beginPath();
-            this.options.context.arc(lastPoint[0], lastPoint[1], this.options.circleSize, 0, 2 * Math.PI);
-            this.options.context.closePath();
-            this.options.context.fill();
+    async drawCircle() {
+        if (!this.options.showCircle) {
+            return;
+        }
 
-            resolve();
-        });
+        const lastPoint = this.getPointCoordinates(this.options.data.length - 1);
+        this.options.context.fillStyle = this.options.circle;
+        this.options.context.beginPath();
+        this.options.context.arc(lastPoint[0], lastPoint[1], this.options.circleSize, 0, 2 * Math.PI);
+        this.options.context.closePath();
+        this.options.context.fill();
     }
 
     /**
      * Draw scale bounds text
      * @return {Promise}
      */
-    drawBounds() {
-        return new Promise((resolve) => {
-            if (!this.options.showBounds) {
-                resolve();
-                return;
-            }
-    
-            const topBound = this.options.centerZero ? this.max : this.maxValue, bottomBound = this.options.centerZero ? this.max : this.minValue;
-            this.options.context.font = this.options.boundsHeight + "px " + this.options.boundsFont;
-            this.options.context.fillStyle = this.options.bounds;
-            this.options.context.textBaseline = 'middle';
-            this.options.context.textAlign = 'center';
-            this.options.context.fillText(topBound, this.options.paddingLeft - (this.options.showLegend ? this.options.paddingLeft / 2 : 0), this.options.paddingTop - (this.options.showLegend ? 0 : this.options.boundsHeight));
-            this.options.context.fillText(bottomBound, this.options.paddingLeft - (this.options.showLegend ? this.options.paddingLeft / 2 : 0), this.options.target.height - this.options.paddingBottom + (this.options.showLegend ? 0 : this.options.boundsHeight));
+    async drawBounds() {
+        if (!this.options.showBounds) {
+            return;
+        }
 
-            resolve();
-        });
+        const topBound = this.options.centerZero ? this.max : this.maxValue;
+        const bottomBound = this.options.centerZero ? -this.max : this.minValue;
+
+        this.options.context.font = this.options.boundsHeight + "px " + this.options.boundsFont;
+        this.options.context.fillStyle = this.options.bounds;
+        this.options.context.textBaseline = 'middle';
+        this.options.context.textAlign = 'center';
+        this.options.context.fillText(topBound, this.options.paddingLeft - (this.options.showLegend ? this.options.paddingLeft / 2 : 0), this.options.paddingTop - (this.options.showLegend ? 0 : this.options.boundsHeight));
+        this.options.context.fillText(bottomBound, this.options.paddingLeft - (this.options.showLegend ? this.options.paddingLeft / 2 : 0), this.options.target.height - this.options.paddingBottom + (this.options.showLegend ? 0 : this.options.boundsHeight));
     }
 
     /**
      * Draw graph legend
      */
-    drawLegend() {
-        return new Promise((resolve) => {
-            const dataLength = this.options.data.length -1;
-    
-            if (!this.options.showLegend || !this.options.legend) {
-                resolve();
-                return;
-            }
-    
-            this.options.context.font = this.options.legendHeight + "px " + this.options.legendFont;
-            this.options.context.fillStyle = this.options.legendColor;
-            this.options.context.textBaseline = 'middle';
-            this.options.context.textAlign = 'center';
-    
-            for (let i = 0; i <= dataLength; i++) {
-                this.options.context.fillText(this.options.legend[i], this.getPointCoordinates(i)[0], this.options.target.height - this.options.paddingBottom / 2);
-            }
+    async drawLegend() {
+        const dataLength = this.options.data.length -1;
 
-            resolve();
-        });
+        if (!this.options.showLegend || !this.options.legend) {
+            return;
+        }
+
+        this.options.context.font = this.options.legendHeight + "px " + this.options.legendFont;
+        this.options.context.fillStyle = this.options.legendColor;
+        this.options.context.textBaseline = 'middle';
+        this.options.context.textAlign = 'center';
+
+        for (let i = 0; i <= dataLength; i++) {
+            this.options.context.fillText(this.options.legend[i], this.getPointCoordinates(i)[0], this.options.target.height - this.options.paddingBottom / 2);
+        }
     }
 }
